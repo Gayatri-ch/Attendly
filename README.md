@@ -1,6 +1,6 @@
-# Attendly - Smart Attendance System (Modular Edition)
+# Attendly - Smart Attendance System
 
-Attendly is a modern, AI-powered Smart Attendance System built with **Flask (Python)**, **MySQL**, and **Computer Vision**. This version has been fully refactored into a modular, service-oriented architecture for production-like scalability.
+Attendly is a modern, AI-powered Smart Attendance System built with **Flask (Python)**, **MySQL**, and **Computer Vision**. 
 
 ##  Features
 
