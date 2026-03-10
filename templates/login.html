@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Attendly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; height: 100vh;">
+    <div class="form-container" style="margin: 0;">
+        <h2 style="text-align: center; color: #00FFAB; margin-bottom: 20px;">Attendly Login</h2>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('auth.login') }}" method="POST">
+            <div class="form-group">
+                <label>Login As</label>
+                <select name="role" id="roleSelect">
+                    <option value="faculty">Faculty</option>
+                    <option value="student">Student</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" name="user_id" id="uidInput" placeholder="F101" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+
+        <p style="margin-top: 20px; text-align: center; font-size: 0.9em; color: #E0E0E0;">
+            Don't have an account? <a href="{{ url_for('auth.register') }}" style="color: #00FFAB; text-decoration: none;">Register here</a>
+        </p>
+    </div>
+
+    <script>
+        const roleSelect = document.getElementById('roleSelect');
+        const uidInput = document.getElementById('uidInput');
+
+        function updatePrefix() {
+            const role = roleSelect.value;
+            const currentVal = uidInput.value.replace(/^[sf]/i, '');
+            if (role === 'student') {
+                uidInput.value = 'S' + currentVal;
+                uidInput.placeholder = 'S101';
+            } else {
+                uidInput.value = 'F' + currentVal;
+                uidInput.placeholder = 'F101';
+            }
+        }
+
+        roleSelect.addEventListener('change', updatePrefix);
+        
+        // Initial call
+        window.onload = updatePrefix;
+    </script>
+</body>
+</html>

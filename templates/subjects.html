@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Management | Attendly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .sidebar { width: 250px; }
+        .main-content { margin-left: 270px; }
+        .sidebar .subj-list { margin-top: 20px; border-top: 1px solid #292C35; padding-top: 10px; }
+        .sidebar .subj-list h4 { color: #00FFAB; font-size: 0.9em; margin-bottom: 10px; padding-left: 10px; }
+        .sidebar .subj-item { font-size: 0.85em; padding: 8px 15px; }
+
+        .subjects-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 20px; 
+            margin-top: 20px;
+        }
+        .subj-card {
+            background-color: #1F1F2E;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            border-top: 3px solid #00FFAB;
+        }
+        .subj-card:hover { transform: translateY(-5px); box-shadow: 0 0 15px #00FFAB; }
+        .subj-card h3 { color: #00FFAB; margin-bottom: 10px; }
+        .subj-card .code { color: #94a3b8; font-size: 0.9em; margin-bottom: 15px; }
+        .subj-card .stats { margin-bottom: 20px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Teacher Panel</h2>
+        <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('faculty.subjects') }}" class="active">My Subjects</a>
+        <a href="{{ url_for('faculty.upload_photo') }}">Upload Photos</a>
+        
+        <div class="subj-list">
+            <h4>Quick Access</h4>
+            {% for s in subjects %}
+            <a href="{{ url_for('faculty.download_report', subject_id=s.id) }}" class="subj-item">{{ s.subject_name }}</a>
+            {% endfor %}
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" style="margin-top: auto; border-top: 1px solid #292C35;">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Subject Management</h1>
+            <button onclick="document.getElementById('addSubjectModal').style.display='flex'" class="btn btn-primary">+ Add New Subject</button>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="subjects-grid">
+            {% for s in subjects %}
+            <div class="subj-card">
+                <h3>{{ s.subject_name }}</h3>
+                <div class="code">Code: {{ s.subject_code }}</div>
+                <div class="stats">
+                    <strong>{{ s.enrolled_count }}</strong> Students Enrolled
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button onclick="startAttendance('{{ s.id }}', '{{ s.subject_name }}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85em;">Start Attendance</button>
+                    <button onclick="openEnrollModal('{{ s.id }}', '{{ s.subject_name }}')" class="btn" style="background: #292C35; color: white; padding: 6px 12px; font-size: 0.85em;">Enroll Students</button>
+                    <a href="{{ url_for('faculty.download_report', subject_id=s.id) }}" class="btn" style="background: #292C35; color: #00FFAB; padding: 6px 12px; font-size: 0.85em;">Report</a>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not subjects %}
+            <div class="card" style="grid-column: 1 / -1; text-align: center;">
+                <p>No subjects found. Add your first subject to get started!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modals (Copied from previous tdashboard for functionality) -->
+    <div id="addSubjectModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="form-container" style="margin: 0; width: 400px;">
+            <h3>New Subject</h3>
+            <form action="{{ url_for('faculty.add_subject') }}" method="POST">
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" name="subject_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Subject Code</label>
+                    <input type="text" name="subject_code" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create</button>
+                    <button type="button" onclick="this.closest('#addSubjectModal').style.display='none'" class="btn btn-danger" style="flex: 1;">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="enrollModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="form-container" style="margin: 0; width: 400px;">
+            <h3 id="enrollHeader">Enroll Student</h3>
+            <form action="{{ url_for('faculty.enroll') }}" method="POST">
+                <input type="hidden" name="subject_id" id="enrollSubjectId">
+                <div class="form-group">
+                    <label>Student UID</label>
+                    <input type="text" name="student_uid" placeholder="S1234" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Enroll</button>
+                    <button type="button" onclick="this.closest('#enrollModal').style.display='none'" class="btn btn-danger" style="flex: 1;">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEnrollModal(id, name) {
+            document.getElementById('enrollSubjectId').value = id;
+            document.getElementById('enrollHeader').innerText = "Enroll in " + name;
+            document.getElementById('enrollModal').style.display = 'flex';
+        }
+
+        function startAttendance(id, name) {
+            if (confirm("Start face recognition for " + name + "?")) {
+                fetch("{{ url_for('api.start_attendance') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ subject_id: id, subject_name: name })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === "started") {
+                        alert("AI Engine started! The webcam window will open shortly.");
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

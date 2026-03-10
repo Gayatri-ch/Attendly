@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Attendly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar { width: 250px; }
+        .main-content { margin-left: 270px; }
+        .sidebar .subj-list { margin-top: 20px; border-top: 1px solid #292C35; padding-top: 10px; }
+        .sidebar .subj-list h4 { color: #00FFAB; font-size: 0.9em; margin-bottom: 10px; padding-left: 10px; }
+        .sidebar .subj-item { font-size: 0.85em; padding: 8px 15px; }
+        
+        .chart-container {
+            background-color: #1F1F2E;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            max-width: 800px;
+            height: 300px;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Student Panel</h2>
+        <a href="{{ url_for('student.dashboard') }}" class="active">Dashboard</a>
+        
+        <div class="subj-list">
+            <h4>My Subjects</h4>
+            {% for s in subjects %}
+            <a href="{{ url_for('student.subject_attendance', subject_id=s.id) }}" class="subj-item">{{ s.subject_name }}</a>
+            {% endfor %}
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" style="margin-top: auto; border-top: 1px solid #292C35;">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Attendance Status</h1>
+            <div style="color: #E0E0E0;">Welcome, <strong>{{ user.name }}</strong> ({{ user.uid }})</div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Graphs Section -->
+        <div class="chart-container">
+            <h3 style="color: #00FFAB; margin-bottom: 20px;">Attendance Overview</h3>
+            <canvas id="attendanceChart"></canvas>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            {% for s in subjects %}
+            <div class="card" style="margin-bottom: 0;">
+                <h3 style="margin-bottom: 5px;">{{ s.subject_name }}</h3>
+                <p style="color: #94a3b8; font-size: 0.85em; margin-bottom: 10px;">{{ s.subject_code }}</p>
+                <div style="font-size: 2em; font-weight: bold; color: #00FFAB;">{{ s.percentage }}%</div>
+                <p style="font-size: 0.8em; color: #00FFAB;">{{ s.present_count }} / {{ s.total_days }} Classes</p>
+                <a href="{{ url_for('student.subject_attendance', subject_id=s.id) }}" class="btn btn-primary" style="margin-top: 15px; padding: 5px 12px; font-size: 0.8em;">View History</a>
+            </div>
+            {% endfor %}
+            {% if not subjects %}
+            <div class="card" style="grid-column: 1 / -1;">
+                <p>Not enrolled in any subjects yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h3>Recent Attendance History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in history %}
+                    <tr>
+                        <td>{{ h.attendance_date }}</td>
+                        <td>{{ h.attendance_time }}</td>
+                        <td>{{ h.subject_name }}</td>
+                        <td class="{% if h.status == 'Present' %}text-present{% else %}text-absent{% endif %}">
+                            {{ h.status }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not history %}
+                    <tr><td colspan="4" style="text-align: center;">No records found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const chartCtx = document.getElementById('attendanceChart').getContext('2d');
+        const subjectLabels = {{ subjects|map(attribute='subject_name')|list|tojson }};
+        const attendanceData = {{ subjects|map(attribute='percentage')|list|tojson }};
+        
+        new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Attendance Percentage',
+                    data: attendanceData,
+                    backgroundColor: 'rgba(0, 255, 171, 0.2)',
+                    borderColor: '#00FFAB',
+                    borderWidth: 2,
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: '#292C35' },
+                        ticks: { color: '#E0E0E0' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#E0E0E0' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

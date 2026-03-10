@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.subject_name }} Attendance | Attendly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Student Panel</h2>
+        <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        
+        <div class="subj-list" style="margin-top: 20px; border-top: 1px solid #292C35; padding-top: 10px;">
+            <h4 style="color: #00FFAB; font-size: 0.9em; margin-bottom: 10px; padding-left: 10px;">My Subjects</h4>
+            {% for s in subjects %}
+            <a href="{{ url_for('student.subject_attendance', subject_id=s.id) }}" class="subj-item" style="font-size: 0.85em; padding: 8px 15px; display: block; text-decoration: none; color: #E0E0E0;">{{ s.subject_name }}</a>
+            {% endfor %}
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" style="margin-top: auto; border-top: 1px solid #292C35;">Logout</a>
+    </div>
+
+    <style>
+        .sidebar { width: 250px; }
+        .main-content { margin-left: 270px; }
+        .subj-item:hover { color: #00FFAB; background: #292C35; }
+    </style>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>{{ subject.subject_name }} History</h1>
+            <div style="color: #94a3b8;">Code: <strong>{{ subject.subject_code }}</strong></div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <h3 style="color: #00FFAB; margin-bottom: 20px;">Daily Attendance Log</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.attendance_date }}</td>
+                        <td>{{ r.attendance_time }}</td>
+                        <td class="{% if r.status == 'Present' %}text-present{% else %}text-absent{% endif %}">
+                            {{ r.status }}
+                        </td>
+                        <td>
+                            {% if r.status == 'Absent' %}
+                            <button onclick="openFlagModal('{{ r.id }}', '{{ r.attendance_date }}')" class="btn" style="padding: 4px 8px; font-size: 0.75em; background: #ff4d4d; color: white;">Raise Flag</button>
+                            {% else %}
+                            <span style="color: #4CAF50; font-size: 0.8em;">Verified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not records %}
+                    <tr><td colspan="4" style="text-align: center;">No attendance records found for this subject.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <a href="{{ url_for('student.dashboard') }}" class="btn" style="background: #292C35; color: white; margin-top: 20px;">Back to Dashboard</a>
+    </div>
+
+    <!-- Flag Modal -->
+    <div id="flagModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="form-container" style="margin: 0; width: 400px;">
+            <h3>Report Attendance Issue</h3>
+            <p style="font-size: 0.85em; color: #94a3b8; margin-bottom: 20px;">Raise a flag if you were present but marked absent for <strong id="flagDate"></strong>.</p>
+            <form action="{{ url_for('student.report_attendance') }}" method="POST">
+                <input type="hidden" name="attendance_id" id="flagAttendanceId">
+                <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                <div class="form-group">
+                    <label>Reason / Note</label>
+                    <textarea name="reason" style="width: 100%; background: #1C1C28; border: 1px solid #292C35; color: white; padding: 10px; border-radius: 8px;" required placeholder="Explain why this is fishy..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Submit Flag</button>
+                    <button type="button" onclick="document.getElementById('flagModal').style.display='none'" class="btn btn-danger" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openFlagModal(id, date) {
+            document.getElementById('flagAttendanceId').value = id;
+            document.getElementById('flagDate').innerText = date;
+            document.getElementById('flagModal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

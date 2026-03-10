@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendly | Smart Face Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+            background: linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 0.8)), url('https://images.unsplash.com/photo-1551033406-611cf9a28f67?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .hero h1 {
+            font-size: 4em;
+            color: #00FFAB;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 171, 0.5);
+        }
+        .hero p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+        .features {
+            padding: 50px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .feature-item {
+            background-color: #1F1F2E;
+            padding: 30px;
+            border-radius: 12px;
+            border-top: 3px solid #00FFAB;
+            transition: transform 0.3s;
+        }
+        .feature-item:hover {
+            transform: translateY(-10px);
+        }
+        .feature-item h3 {
+            color: #00FFAB;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav style="display: flex; justify-content: space-between; padding: 20px 50px; background-color: #1C1C28; align-items: center;">
+        <h2 style="color: #00FFAB; margin: 0;">Attendly</h2>
+        <div style="display: flex; gap: 20px;">
+            {% if user %}
+                <a href="{{ url_for('dashboard_redirect') }}" class="btn btn-primary">Go to Dashboard</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn" style="border: 1px solid #ff4d4d; color: #ff4d4d;">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn" style="border: 1px solid #00FFAB; color: #00FFAB;">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Smart Attendance Reinvented</h1>
+        <p>Seamless, secure, and touchless attendance tracking powered by cutting-edge Face Recognition AI. Designed for modern classrooms and offices.</p>
+        <div style="display: flex; gap: 20px;">
+            <a href="/register" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1em;">Get Started</a>
+            <a href="/login" class="btn" style="padding: 15px 30px; font-size: 1.1em; color: white; background: #292C35;">Faculty Login</a>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature-item">
+            <h3>AI Face Recognition</h3>
+            <p>Automatically mark attendance with high accuracy using our advanced Facenet512 deep learning model. No more manual roll calls.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Student Dashboard</h3>
+            <p>Students can track their attendance history, view daily status, and analyze performance with interactive graphs and tables.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Advanced Analytics</h3>
+            <p>Faculty can generate detailed CSV reports, see class-wide statistics, and manage student enrollments effortlessly.</p>
+        </div>
+    </div>
+
+    <footer style="padding: 40px; text-align: center; color: #94a3b8; border-top: 1px solid #292C35;">
+        <p>&copy; 2026 Attendly. All rights reserved.</p>
+    </footer>
+</body>
+</html>
